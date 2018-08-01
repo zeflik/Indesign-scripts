@@ -2,7 +2,7 @@
 
 /* Copyright 2018, Józef Niemiec
     August 1 ,2018
-    email: jozef.niemiec@stgambit.com */
+    email: kontakt@jozefniemiec.pl */
 
 const SCRIPT_NAME = "Creating hyperlinks for an inactive TOC";
 
