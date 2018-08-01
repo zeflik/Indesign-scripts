@@ -4,7 +4,7 @@
     August 1 ,2018
     email: jozef.niemiec@stgambit.com */
 
-const SCRIPT_NAME = "Creating hyperlinks to inactive TOC";
+const SCRIPT_NAME = "Creating hyperlinks for an inactive TOC";
 
 const SCRIPT_INFO = "Select the paragraphs in which you want to create hyperlinks. \n \n" 
                   + "The first or last word in the paragraph will be considered as number of the target page."
