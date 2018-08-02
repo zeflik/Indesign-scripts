@@ -1,7 +1,7 @@
 
 
 /* Copyright 2018, Józef Niemiec
-    August 1 ,2018
+    August 1, 2018
     email: kontakt@jozefniemiec.pl */
 
 const SCRIPT_NAME = "Creating hyperlinks for an inactive TOC";
@@ -80,7 +80,7 @@ function createHyperlinks() {
 
 function makeHyperlink(text, pageNumber) {
 
-	var source, destination, hyperlink;
+	var source, destination;
 
 	try {
 		source = document.hyperlinkTextSources.add(text);
@@ -90,7 +90,7 @@ function makeHyperlink(text, pageNumber) {
 			alert("Page \"" + pageNumber + "\" do not exist!", SCRIPT_NAME);
 			destination = null;
 		}
-		hyperlink = document.hyperlinks.add(source, destination, {
+		document.hyperlinks.add(source, destination, {
 			name: "TOC entry: " + ++count + " to page: " + pageNumber
 		});
 	} catch (e) {
