@@ -20,7 +20,6 @@ app.doScript(
 );
 
 function main() {
-
 	preCheck();
 	var dialog = createDialog();
 	if (dialog.show()) {
@@ -30,12 +29,10 @@ function main() {
 }
 
 function createDialog() {
-    
 	var myDialog = app.dialogs.add({
 		name: SCRIPT_NAME,
 		canCancel: true
 	});
-
 	with(myDialog) {
 		with(dialogColumns.add()) {
 			with(borderPanels.add()) {
@@ -62,9 +59,7 @@ function createDialog() {
 }
 
 function createHyperlinks() {
-
 	var text, words;
-
 	for (i = 0; i < paragraphs.length; i++) {
 		try {
 			text = paragraphs[i].texts;
@@ -79,9 +74,7 @@ function createHyperlinks() {
 
 
 function makeHyperlink(text, pageNumber) {
-
 	var source, destination;
-
 	try {
 		source = document.hyperlinkTextSources.add(text);
 		if (document.pages.itemByName(pageNumber).isValid)
@@ -99,7 +92,6 @@ function makeHyperlink(text, pageNumber) {
 }
 
 function preCheck() {
-
 	try {
 		document = app.activeDocument;
 		paragraphs = app.selection[0].paragraphs.everyItem().getElements();
