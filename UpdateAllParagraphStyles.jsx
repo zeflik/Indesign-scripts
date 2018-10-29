@@ -35,7 +35,7 @@ function main() {
       with(borderPanels.add()) {
         with(dialogColumns.add()) {
           with(dialogRows.add()) {
-            var paragraphHyphenation = checkboxControls.add({
+            var hyphenationCheckBox = checkboxControls.add({
               staticLabel: "Hyphenation",
               checkedState: true
             });
@@ -44,7 +44,7 @@ function main() {
             staticTexts.add({
               staticLabel: "Words with at Least:"
             });
-            var wordsWithAtLeast = integerEditboxes.add({
+            var wordsWithAtLeastEditText = integerEditboxes.add({
               editContents: "5"
             });
             staticTexts.add({
@@ -55,7 +55,7 @@ function main() {
             staticTexts.add({
               staticLabel: "After First:"
             });
-            var afterFirst = integerEditboxes.add({
+            var hyphenateAfterFirstEditText = integerEditboxes.add({
               editContents: "3"
             });
             staticTexts.add({
@@ -66,7 +66,7 @@ function main() {
             staticTexts.add({
               staticLabel: "Before Last:"
             });
-            var beforeLast = integerEditboxes.add({
+            var hyphenateBeforeLastEditText = integerEditboxes.add({
               editContents: "3"
             });
             staticTexts.add({
@@ -77,7 +77,7 @@ function main() {
             staticTexts.add({
               staticLabel: "Hyphen Limit"
             });
-            var hyphenLimit = integerEditboxes.add({
+            var hyphenLimitEditText = integerEditboxes.add({
               editContents: "2"
             });
             staticTexts.add({
@@ -88,24 +88,24 @@ function main() {
             staticTexts.add({
               staticLabel: "Hyphenation Zone"
             });
-            var hyphenationZone = integerEditboxes.add({
+            var hyphenationZoneEditText = integerEditboxes.add({
               editContents: "0"
             });
           }
           with(dialogRows.add()) {
-            var hyphenateCapitalizedWords = checkboxControls.add({
+            var hyphenateCapitalizedCheckBox = checkboxControls.add({
               staticLabel: "Hyphenate Capitalized Words",
               checkedState: false
             });
           }
           with(dialogRows.add()) {
-            var lastWordHypenation = checkboxControls.add({
+            var hyphenateLastWordCheckBox = checkboxControls.add({
               staticLabel: "Hyphenate Last Word",
               checkedState: false
             });
           }
           with(dialogRows.add()) {
-            var hyphenateAcrossColumn = checkboxControls.add({
+            var hyphenateAcrossColumnCheckbox = checkboxControls.add({
               staticLabel: "Hyphenate Across Column",
               checkedState: false
             });
@@ -115,24 +115,24 @@ function main() {
     }
   }
   var isDialogConfirmed = myDialog.show();
-
   if (isDialogConfirmed) {
-    var paragraph;
+    var paragraphStyle;
     for (i = 1; i < paragraphStyles.length; i++) {
       try {
-        style = paragraphStyles[i];
-        if (languageDropdown.selectedIndex > 0) style.appliedLanguage = languages[languageDropdown.selectedIndex];
-        if (changeToParagraphComposer) style.composer = 'Adobe Paragraph Composer';
-        style.hyphenateLastWord = lastWordHypenation.checkedState;
-        style.hyphenation = paragraphHyphenation.checkedState;
-        style.hyphenateAfterFirst = afterFirst.editValue;
-        style.hyphenateBeforeLast = beforeLast.editValue;
-        style.hyphenateCapitalizedWords = hyphenateCapitalizedWords.checkedState;
-        style.hyphenateLadderLimit = hyphenLimit.editValue;
-        style.hyphenateLastWord = lastWordHypenation.checkedState;
-        style.hyphenateWordsLongerThan = wordsWithAtLeast.editValue;
-        style.hyphenationZone = hyphenationZone.editValue;
-        style.hyphenateAcrossColumns = hyphenateAcrossColumn.checkedState;
+        paragraphStyle = paragraphStyles[i];
+        with(paragraphStyle) {
+          if (languageDropdown.selectedIndex > 0) appliedLanguage = languages[languageDropdown.selectedIndex];
+          if (changeToParagraphComposer) composer = 'Adobe Paragraph Composer';
+          hyphenateLastWord = hyphenateLastWordCheckBox.checkedState;
+          hyphenation = hyphenationCheckBox.checkedState;
+          hyphenateAfterFirst = hyphenateAfterFirstEditText.editValue;
+          hyphenateBeforeLast = hyphenateBeforeLastEditText.editValue;
+          hyphenateCapitalizedWords = hyphenateCapitalizedCheckBox.checkedState;
+          hyphenateLadderLimit = hyphenLimitEditText.editValue;
+          hyphenateWordsLongerThan = wordsWithAtLeastEditText.editValue;
+          hyphenationZone = hyphenationZoneEditText.editValue;
+          hyphenateAcrossColumns = hyphenateAcrossColumnCheckbox.checkedState;
+        }
       } catch (error) {
         alert(error, APP_NAME);
         return;
