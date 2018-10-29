@@ -17,4 +17,4 @@ This is a collection of scripts for use with Adobe InDesign:
   
   
 
-> All scripts have been written and tested for the newest InDesign API (13.0).
+> All scripts have been written and tested for the InDesign API (13.0).
