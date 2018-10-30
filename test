@@ -1,0 +1,317 @@
+﻿
+
+/*  Created by Józef Niemiec / 10.08.2018  
+    email: jozef.niemiec@stgambit.com */
+
+const SCRIPT_NAME = 'SG Cook font mapper';
+const LATIN_UNICODE_RANGE = '[\u0000-\u206F]';
+const NON_LATIN_UNICODE_RANGE = '[^\u0000-\u206F]';
+const LANGUAGE_PICK_LABEL = 'Wskaż język dokumentu';
+const NOTO_FONT_FAMILY_NAME = 'Noto Sans CJK ';
+const LOCK_PREFIX = 'Lock ';
+
+var progressPanel;
+var notoSansSubstitutions = {};
+var fontSubstitutionsTable;
+var stylesToMap = {};
+
+var notoLanguageCodesMap = {
+	'JA - Japanese': 'JP',
+	'KO - Korean': 'KR',
+	'ZHCN - Chinese simp': 'SC',
+	'ZHTW - Chinese trad': 'TC'
+}
+
+notoSansSubstitutions['Avenir Next LT Pro'] = {
+	'Ultra Light': 'Thin',
+	'Ultra Italic': 'Thin',
+	'Light': 'Light',
+	'Light Italic': 'Light',
+	'Demi': 'Medium',
+	'Demi Italic': 'Medium',
+	'Regular': 'DemiLight',
+	'Italic': 'DemiLight',
+	'Medium': 'Regular',
+	'Medium Italic': 'Regular',
+	'Bold': 'Bold',
+	'Bold Italic': 'Bold',
+	'Black': 'Black',
+	'Black Italic': 'Black'
+};
+
+notoSansSubstitutions['Myriad Pro'] = {
+	'Light': 'Light',
+	'Light Italic': 'Light',
+	'Regular': 'Regular',
+	'Italic': 'Regular',
+	'Semibold': 'Medium',
+	'Semibold Italic': 'Medium',
+	'Bold': 'Bold',
+	'Bold Italic': 'Bold',
+	'Black': 'Black',
+	'Black Italic': 'Black'
+};
+
+app.doScript(
+	main,
+	ScriptLanguage.JAVASCRIPT, [],
+	UndoModes.ENTIRE_SCRIPT,
+	SCRIPT_NAME
+);
+
+
+function main() {
+
+	var langCode = showDialog(notoLanguageCodesMap);
+	if (langCode) {
+		progressPanel = createProgressPanel(100, 400);
+		progressPanel.show();
+		fontSubstitutionsTable = generateFontSubstitutionsTable(langCode);
+		preparePagragraphStyles(app.activeDocument.allParagraphStyles);
+		createCharacterStylesFromDocumentFontNames(app.activeDocument.fonts.everyItem().name);
+		if (langCode == "JP") {
+			startJapanese();
+		} else {
+			startChineseKorean();
+		}
+	}
+
+
+}
+
+function startJapanese() {
+
+	var allParagraphs = app.activeDocument.stories.everyItem().paragraphs.everyItem().characters.everyItem().getElements();
+	allParagraphs = allParagraphs.concat(app.activeDocument.stories.everyItem().tables.everyItem().cells.everyItem().paragraphs.everyItem().getElements());
+
+	var paragraphsToReMap = findParagraphsWithNonLatinCharacters(allParagraphs);
+	createLockedBasicStyles();
+	applyLockedCharacterStyles(paragraphsToReMap);
+	applyCharacterStylesToBeMapped(allParagraphs);
+	updateOldCharacterStyles(stylesToMap);
+	changeFontsOnParagraphStyles(app.activeDocument.allParagraphStyles);
+}
+
+function startChineseKorean() {
+
+	applyCharactersStylesWithNoChange(findCharsByRange(LATIN_UNICODE_RANGE), "");
+	applyCharacterStylesToBeMapped(findCharsByRange(NON_LATIN_UNICODE_RANGE));
+	updateOldCharacterStyles(stylesToMap);
+	changeFontsOnParagraphStyles(app.activeDocument.allParagraphStyles);
+	alert("Done");
+}
+
+
+function createLockedBasicStyles() {
+
+	for (key in fontSubstitutionsTable) {
+		var basicStyle = app.activeDocument.characterStyles.itemByName(key.replace('\t', ' '));
+		try {
+			newStyle = basicStyle.duplicate();
+			newStyle.name = LOCK_PREFIX + basicStyle.name;
+		} catch (e) {}
+	}
+}
+
+
+function applyLockedCharacterStyles(paragraphsToReMap) {
+
+	for (i = 0; i < paragraphsToReMap.length; i++) {
+		applyCharactersStylesWithNoChange(paragraphsToReMap[i].characters, LOCK_PREFIX);
+	}
+}
+
+
+function applyCharactersStylesWithNoChange(charactersForUpdate, lock) {
+
+	progressPanel.window.text = 'Nakładam style znakowe...';
+	for (var i = 0; i < charactersForUpdate.length; i++) {
+		progressPanel.progressBar.value = (100 / charactersForUpdate.length) * i;
+		var existingCharacterStyle = charactersForUpdate[i].appliedCharacterStyle;
+		if (existingCharacterStyle.name == '[None]') {
+			try {
+				var updatedStyle = app.activeDocument.characterStyles.itemByName(lock + charactersForUpdate[i].appliedFont.name.replace('\t', ' '));
+				charactersForUpdate[i].applyCharacterStyle(updatedStyle);
+			} catch (e) {}
+		} else {
+			updateCharacterStyle(charactersForUpdate[i], lock);
+		}
+	}
+}
+
+function generateFontSubstitutionsTable(langCode) {
+
+	var fontSubstitutions = {};
+	for (var fontName in notoSansSubstitutions) {
+		for (var style in notoSansSubstitutions[fontName]) {
+			fontSubstitutions[fontName + '\t' + style] = NOTO_FONT_FAMILY_NAME + langCode + '\t' + notoSansSubstitutions[fontName][style];
+		}
+	}
+	return fontSubstitutions;
+}
+
+
+function applyCharacterStylesToBeMapped(charactersForUpdate) {
+
+	progressPanel.window.text = 'Nakładam style znakowe...';
+	for (var i = 0; i < charactersForUpdate.length; i++) {
+		progressPanel.progressBar.value = (100 / charactersForUpdate.length) * i;
+		var existingCharacterStyle = charactersForUpdate[i].appliedCharacterStyle;
+		if (existingCharacterStyle.name != '[None]') {
+			updateExistingCharacterStyle(charactersForUpdate[i]);
+		}
+	}
+}
+
+function updateOldCharacterStyles(oldCharacterStylesToUpdate) {
+
+	progressPanel.window.text = 'Aktualizuję style znakowe...';
+	for (var i in oldCharacterStylesToUpdate) {
+		progressPanel.progressBar.value = (100 / oldCharacterStylesToUpdate.length) * i;
+		try {
+			if (oldCharacterStylesToUpdate[i].appliedFont in notoSansSubstitutions) {
+				if (oldCharacterStylesToUpdate[i].fontStyle == "Italic") {
+					oldCharacterStylesToUpdate[i].skew = 10;
+				} else if (oldCharacterStylesToUpdate[i].fontStyle.search("Italic") >= 0) {
+					oldCharacterStylesToUpdate[i].fontStyle = oldCharacterStylesToUpdate[i].fontStyle.replace(" Italic", "");
+					oldCharacterStylesToUpdate[i].skew = 10;
+				}
+				var newFont = app.fonts.itemByName(fontSubstitutionsTable[oldCharacterStylesToUpdate[i].appliedFont + '\t' + oldCharacterStylesToUpdate[i].fontStyle]);
+				oldCharacterStylesToUpdate[i].appliedFont = newFont.fontFamily;
+				oldCharacterStylesToUpdate[i].fontStyle = newFont.fontStyleName;
+			}
+		} catch (e) {}
+	}
+}
+
+function updateCharacterStyle(characterForUpdate, lock) {
+
+	var existingCharacterStyle = characterForUpdate.appliedCharacterStyle;
+	var newStyleName = lock + existingCharacterStyle.name + " " + characterForUpdate.appliedFont.fontFamily + ' ' + characterForUpdate.appliedFont.fontStyleName;
+	var newStyle = app.activeDocument.characterStyles.itemByName(newStyleName);
+	if (!newStyle.isValid) {
+		newStyle = existingCharacterStyle.duplicate();
+		newStyle.name = newStyleName;
+		newStyle.appliedFont = characterForUpdate.appliedFont;
+	}
+	characterForUpdate.applyCharacterStyle(newStyle);
+}
+
+function updateExistingCharacterStyle(characterForUpdate) {
+
+	var existingCharacterStyle = characterForUpdate.appliedCharacterStyle;
+	if (existingCharacterStyle.name.substring(0, LOCK_PREFIX.length) == LOCK_PREFIX) return;
+	var newStyleName = existingCharacterStyle.name + " noto from: " + characterForUpdate.appliedFont.fontFamily + ' ' + characterForUpdate.appliedFont.fontStyleName;
+	var newStyle = app.activeDocument.characterStyles.itemByName(newStyleName);
+	if (!newStyle.isValid) {
+		newStyle = existingCharacterStyle.duplicate();
+		newStyle.name = newStyleName;
+		newStyle.appliedFont = characterForUpdate.appliedFont.fontFamily;
+		newStyle.fontStyle = characterForUpdate.fontStyle;
+	}
+	characterForUpdate.applyCharacterStyle(newStyle);
+	if (!(newStyle.name in stylesToMap)) stylesToMap[newStyle.name] = newStyle;
+}
+
+function preparePagragraphStyles(documentParagraphStyles) {
+
+	progressPanel.window.text = "Przygotowuję...";
+	for (var i = 1; i < documentParagraphStyles.length; i++) {
+		progressPanel.progressBar.value = (100 / documentParagraphStyles.length) * i;
+		documentParagraphStyles[i].kerningMethod = 'Optical';
+		documentParagraphStyles[i].basedOn = "[No Paragraph Style]";
+	}
+}
+
+function findCharsByRange(range) {
+
+	app.findGrepPreferences = NothingEnum.nothing;
+	app.findGrepPreferences.findWhat = range;
+	result = app.activeDocument.findGrep();
+	app.findGrepPreferences = NothingEnum.nothing;
+	return result;
+}
+
+function createCharacterStylesFromDocumentFontNames(documentFontNamesList) {
+
+	progressPanel.window.text = "Tworzę style znakowe";
+	for (var i = 0; i < documentFontNamesList.length; i++) {
+		progressPanel.progressBar.value = (100 / documentFontNamesList.length) * i;
+		try {
+			app.activeDocument.characterStyles.add({
+				name: documentFontNamesList[i].replace('\t', ' '),
+				appliedFont: documentFontNamesList[i],
+				skew: 0
+			});
+		} catch (e) {
+			alert(e);
+		}
+	}
+}
+
+function showDialog(notoLanguageCodesMap) {
+
+	var languagesList = [];
+	for (var key in notoLanguageCodesMap) {
+		languagesList.push(key);
+	}
+	var myDialog = app.dialogs.add({
+		name: SCRIPT_NAME,
+		canCancel: true,
+	});
+
+	with(myDialog) {
+		with(dialogColumns.add()) {
+
+			staticTexts.add({
+				staticLabel: LANGUAGE_PICK_LABEL
+			});
+			var languageDropdown = dropdowns.add({
+				stringList: languagesList
+			});
+		}
+	}
+	var dialogConfirmed = myDialog.show();
+	if (dialogConfirmed) return notoLanguageCodesMap[languagesList[languageDropdown.selectedIndex]];
+}
+
+function createProgressPanel(maximumValue, progressBarWidth) {
+
+	progressPanel = new Window("window", "Przygotowuję...");
+	with(progressPanel) {
+		progressPanel.progressBar = add("progressbar", [12, 12, progressBarWidth, 24], 0, maximumValue);
+	}
+	return progressPanel;
+}
+
+function changeFontsOnParagraphStyles(paragraphStyles) {
+
+	progressPanel.window.text = 'Aktualizuję style paragrafowe...';
+	for (var i = 0; i < paragraphStyles.length; i++) {
+		progressPanel.progressBar.value = (100 / paragraphStyles.length) * i;
+		try {
+			if (paragraphStyles[i].appliedFont.fontFamily in notoSansSubstitutions) {
+				if (paragraphStyles[i].fontStyle == "Italic") {
+					paragraphStyles[i].skew = 10;
+				} else if (paragraphStyles[i].fontStyle.search("Italic") >= 0) {
+					paragraphStyles[i].fontStyle = paragraphStyles[i].fontStyle.replace(" Italic", "");
+					paragraphStyles[i].skew = 10;
+				}
+				paragraphStyles[i].appliedFont = fontSubstitutionsTable[paragraphStyles[i].appliedFont.name];
+			}
+		} catch (e) {}
+	}
+}
+
+function findParagraphsWithNonLatinCharacters(paragraphs) {
+
+	var nonLatinRange = new RegExp(NON_LATIN_UNICODE_RANGE);
+	var paragraphsToReMap = [];
+	for (i = 0; i < paragraphs.length; i++) {
+		if (!nonLatinRange.test(paragraphs[i].contents)) {
+			paragraphsToReMap.push(paragraphs[i]);
+		}
+	}
+	return paragraphsToReMap;
+}
+
