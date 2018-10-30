@@ -3,7 +3,7 @@
 
 This is a collection of scripts for use with Adobe InDesign:
 
-* <a href="https://github.com/zeflik/Indesign-scripts/blob/master/CreatingHyperlinksForAnInactiveTOC.jsx">Creating hyperlinks for an inactive TOC</a>
+* <a href="https://github.com/zeflik/Indesign-scripts/blob/master/CreatingHyperlinksForAnInactiveTOC.jsx">Create hyperlinks for an inactive TOC</a>
   
   Quick hyperlinks creation on hard coded Table of Contents (if it is not possible to generate TOC from paragraph styles).
   
