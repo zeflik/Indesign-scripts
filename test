@@ -59,7 +59,6 @@ app.doScript(
 
 
 function main() {
-
   var langCode = showDialog(notoLanguageCodesMap);
   if (langCode) {
     progressPanel = createProgressPanel(100, 400);
@@ -73,14 +72,14 @@ function main() {
       startChineseKorean();
     }
   }
-
-
 }
 
 function startJapanese() {
-
-  var allParagraphs = app.activeDocument.stories.everyItem().paragraphs.everyItem().characters.everyItem().getElements();
-  allParagraphs = allParagraphs.concat(app.activeDocument.stories.everyItem().tables.everyItem().cells.everyItem().paragraphs.everyItem().getElements());
+  var allParagraphs = app.activeDocument.stories.everyItem().paragraphs.everyItem().getElements();
+  try {
+    var allTableParagraphs = app.activeDocument.stories.everyItem().tables.everyItem().cells.everyItem().paragraphs.everyItem().getElements()
+    allParagraphs = allParagraphs.concat(allTableParagraphs);
+  } catch (e) {}
 
   var paragraphsToReMap = findParagraphsWithNonLatinCharacters(allParagraphs);
   createLockedBasicStyles();
@@ -91,7 +90,6 @@ function startJapanese() {
 }
 
 function startChineseKorean() {
-
   applyCharactersStylesWithNoChange(findCharsByRange(LATIN_UNICODE_RANGE), "");
   applyCharacterStylesToBeMapped(findCharsByRange(NON_LATIN_UNICODE_RANGE));
   updateOldCharacterStyles(stylesToMap);
@@ -101,7 +99,6 @@ function startChineseKorean() {
 
 
 function createLockedBasicStyles() {
-
   for (key in fontSubstitutionsTable) {
     var basicStyle = app.activeDocument.characterStyles.itemByName(key.replace('\t', ' '));
     try {
@@ -113,7 +110,6 @@ function createLockedBasicStyles() {
 
 
 function applyLockedCharacterStyles(paragraphsToReMap) {
-
   for (i = 0; i < paragraphsToReMap.length; i++) {
     applyCharactersStylesWithNoChange(paragraphsToReMap[i].characters, LOCK_PREFIX);
   }
@@ -121,7 +117,6 @@ function applyLockedCharacterStyles(paragraphsToReMap) {
 
 
 function applyCharactersStylesWithNoChange(charactersForUpdate, lock) {
-
   progressPanel.window.text = 'Nakładam style znakowe...';
   for (var i = 0; i < charactersForUpdate.length; i++) {
     progressPanel.progressBar.value = (100 / charactersForUpdate.length) * i;
@@ -138,7 +133,6 @@ function applyCharactersStylesWithNoChange(charactersForUpdate, lock) {
 }
 
 function generateFontSubstitutionsTable(langCode) {
-
   var fontSubstitutions = {};
   for (var fontName in notoSansSubstitutions) {
     for (var style in notoSansSubstitutions[fontName]) {
@@ -150,7 +144,6 @@ function generateFontSubstitutionsTable(langCode) {
 
 
 function applyCharacterStylesToBeMapped(charactersForUpdate) {
-
   progressPanel.window.text = 'Nakładam style znakowe...';
   for (var i = 0; i < charactersForUpdate.length; i++) {
     progressPanel.progressBar.value = (100 / charactersForUpdate.length) * i;
@@ -162,7 +155,6 @@ function applyCharacterStylesToBeMapped(charactersForUpdate) {
 }
 
 function updateOldCharacterStyles(oldCharacterStylesToUpdate) {
-
   progressPanel.window.text = 'Aktualizuję style znakowe...';
   for (var i in oldCharacterStylesToUpdate) {
     progressPanel.progressBar.value = (100 / oldCharacterStylesToUpdate.length) * i;
@@ -183,7 +175,6 @@ function updateOldCharacterStyles(oldCharacterStylesToUpdate) {
 }
 
 function updateCharacterStyle(characterForUpdate, lock) {
-
   var existingCharacterStyle = characterForUpdate.appliedCharacterStyle;
   var newStyleName = lock + existingCharacterStyle.name + " " + characterForUpdate.appliedFont.fontFamily + ' ' + characterForUpdate.appliedFont.fontStyleName;
   var newStyle = app.activeDocument.characterStyles.itemByName(newStyleName);
@@ -196,7 +187,6 @@ function updateCharacterStyle(characterForUpdate, lock) {
 }
 
 function updateExistingCharacterStyle(characterForUpdate) {
-
   var existingCharacterStyle = characterForUpdate.appliedCharacterStyle;
   if (existingCharacterStyle.name.substring(0, LOCK_PREFIX.length) == LOCK_PREFIX) return;
   var newStyleName = existingCharacterStyle.name + " noto from: " + characterForUpdate.appliedFont.fontFamily + ' ' + characterForUpdate.appliedFont.fontStyleName;
@@ -212,7 +202,6 @@ function updateExistingCharacterStyle(characterForUpdate) {
 }
 
 function preparePagragraphStyles(documentParagraphStyles) {
-
   progressPanel.window.text = "Przygotowuję...";
   for (var i = 1; i < documentParagraphStyles.length; i++) {
     progressPanel.progressBar.value = (100 / documentParagraphStyles.length) * i;
@@ -222,7 +211,6 @@ function preparePagragraphStyles(documentParagraphStyles) {
 }
 
 function findCharsByRange(range) {
-
   app.findGrepPreferences = NothingEnum.nothing;
   app.findGrepPreferences.findWhat = range;
   result = app.activeDocument.findGrep();
@@ -231,7 +219,6 @@ function findCharsByRange(range) {
 }
 
 function createCharacterStylesFromDocumentFontNames(documentFontNamesList) {
-
   progressPanel.window.text = "Tworzę style znakowe";
   for (var i = 0; i < documentFontNamesList.length; i++) {
     progressPanel.progressBar.value = (100 / documentFontNamesList.length) * i;
@@ -248,7 +235,6 @@ function createCharacterStylesFromDocumentFontNames(documentFontNamesList) {
 }
 
 function showDialog(notoLanguageCodesMap) {
-
   var languagesList = [];
   for (var key in notoLanguageCodesMap) {
     languagesList.push(key);
@@ -257,10 +243,8 @@ function showDialog(notoLanguageCodesMap) {
     name: SCRIPT_NAME,
     canCancel: true,
   });
-
   with(myDialog) {
     with(dialogColumns.add()) {
-
       staticTexts.add({
         staticLabel: LANGUAGE_PICK_LABEL
       });
@@ -274,7 +258,6 @@ function showDialog(notoLanguageCodesMap) {
 }
 
 function createProgressPanel(maximumValue, progressBarWidth) {
-
   progressPanel = new Window("window", "Przygotowuję...");
   with(progressPanel) {
     progressPanel.progressBar = add("progressbar", [12, 12, progressBarWidth, 24], 0, maximumValue);
@@ -283,7 +266,6 @@ function createProgressPanel(maximumValue, progressBarWidth) {
 }
 
 function changeFontsOnParagraphStyles(paragraphStyles) {
-
   progressPanel.window.text = 'Aktualizuję style paragrafowe...';
   for (var i = 0; i < paragraphStyles.length; i++) {
     progressPanel.progressBar.value = (100 / paragraphStyles.length) * i;
@@ -302,7 +284,6 @@ function changeFontsOnParagraphStyles(paragraphStyles) {
 }
 
 function findParagraphsWithNonLatinCharacters(paragraphs) {
-
   var nonLatinRange = new RegExp(NON_LATIN_UNICODE_RANGE);
   var paragraphsToReMap = [];
   for (i = 0; i < paragraphs.length; i++) {
