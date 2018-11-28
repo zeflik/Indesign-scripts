@@ -11,9 +11,9 @@ This is a collection of scripts for use with Adobe InDesign:
   
   Updates language, composer and hyphenation settings of all paragraph styles.
   
+* <a href="https://github.com/zeflik/Indesign-scripts/blob/master/removeAllOversets.jsx">Remove all oversets</a>
   
-  
-  
+  Removes text and table oversets in active document or selection.
   
   
 
