@@ -3,9 +3,9 @@
     
     Script removes oversets:
     - on selected items (if there is a selection)
-    - on all page items in active document (if no selection)
+    - on all page items in the active document (if no selection)
     Used algorithm:
-    - text frames - try fit by height, next by width, next both. If overset still exist rollback changes.
+    - text frames - try to adjust the height, then width, then both. If overset still exist rollback changes.
     - tables - set autoGrow = true
 */
 
