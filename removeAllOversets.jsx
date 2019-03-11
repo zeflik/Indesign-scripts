@@ -33,7 +33,6 @@ function main() {
     return;
   };
 
-
   try {
     var tablesCells = app.activeDocument.stories.everyItem().tables.everyItem().cells.everyItem().getElements();
     removeTablesOversets(tablesCells);
