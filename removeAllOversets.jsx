@@ -5,7 +5,7 @@
     - on selected items (if there is a selection)
     - on all page items in the active document (if no selection)
     Used algorithm:
-    - text frames - try to adjust the height, then width, then both. If overset still exist rollback changes.
+    - text frames - tries to adjust the height, then width, then both. If overset still exists rollback changes.
     - tables - set autoGrow = true
 */
 
